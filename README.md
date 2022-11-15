@@ -49,3 +49,7 @@ Some of the things I've tried:
   `abi.encodeWithSignature("approve(address,uint256)", _attacker, poolBalance);`
 
 - I called `transferFrom` with token contract connected to `deployer` instead of `attacker`.
+
+## 4. Side Entrance
+
+- This one is nice. At first I was focusing only on `execute` function and asking myself how I can repay the loan but also to insert a back door (I was thinking something similar to erc20 approve) so I can get the ether later. After a longer break I saw it: I can use `deposit` to repay the loan and to have a trackable balance within lender pool. Ta daa! :)
