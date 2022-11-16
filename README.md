@@ -53,3 +53,7 @@ Some of the things I've tried:
 ## 4. Side Entrance
 
 - This one is nice. At first I was focusing only on `execute` function and asking myself how I can repay the loan but also to insert a back door (I was thinking something similar to erc20 approve) so I can get the ether later. After a longer break I saw it: I can use `deposit` to repay the loan and to have a trackable balance within lender pool. Ta daa! :)
+
+## 5. The Rewarder
+
+- This was a nice challenge. Intuitively I had an idea what I have to do (get a flash loan, deposit to reward pool right before the snapshot is taken, repay the loan). The most time I spend to check how ERC20Snapshot works (just wow :) ), AccessControl and ERC165 (even if I still have questions for this standard). I don't have more to say about this challenge, I enjoy it a lot and I added plenty of comments in `TheRewardAttacker` contract and `the-reward.challenge.js` script.
