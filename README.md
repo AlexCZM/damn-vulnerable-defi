@@ -57,3 +57,17 @@ Some of the things I've tried:
 ## 5. The Rewarder
 
 - This was a nice challenge. Intuitively I had an idea what I have to do (get a flash loan, deposit to reward pool right before the snapshot is taken, repay the loan). The most time I spend to check how ERC20Snapshot works (just wow :) ), AccessControl and ERC165 (even if I still have questions for this standard). I don't have more to say about this challenge, I enjoy it a lot and I added plenty of comments in `TheRewardAttacker` contract and `the-reward.challenge.js` script.
+
+## 6. Selfie
+
+- After I got familiar with snapshot functionality from previous challenge, this one went fast.
+- On short:
+  - create an attacker smart contract:
+    - Implement `receiveTokens`;
+      - get `drainAllFunds` function signature;
+      - call token `snapshot`;
+      - call `queueAction` and pass signature calculated above;
+      - repay the loan;
+    - invoke `flashLoan`;
+  * time travel 2 days;
+  * execute `executeAction`;
