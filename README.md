@@ -20,7 +20,7 @@ DO NOT USE IN PRODUCTION.
 
 ## 1. Unstoppable
 
-- A nice [video](https://www.youtube.com/watch?v=Aw7yvGFtOvI) explaining flash loans and small tutorial on hot to use aave flash loan.
+- A nice [video](https://www.youtube.com/watch?v=Aw7yvGFtOvI) explaining flash loans and small tutorial on how to use aave flash loan.
 
 * The challenge ask to 'stop the pool from offering flash loans'.
   Possible attack vector:
@@ -74,27 +74,32 @@ Some of the things I've tried:
   * time travel 2 days;
   * execute `executeAction`;
 
-  ## 7. tbd
+## 7. tbd
 
-  ## 8. Puppet
+## 8. Puppet
 
-  - UniswapV1 is based on a simple formula:
-    `x * y = k`
-    Meaning that at any point in time the product of tokens from a (liquidity) pool must be constant.
-    For our pool we have 10(eth) \* 10(DVT) = 100.
-    To keep things simple I ignore the fee factor(0.3%).
-    If we sell our 1k DVT tokens:
+- UniswapV1 is based on a simple formula:
+  `x * y = k`
+  Meaning that at any point in time the product of tokens from a (liquidity) pool must be constant.
+  For our pool we have 10(eth) \* 10(DVT) = 100.
+  To keep things simple I ignore the fee factor(0.3%).
+  If we sell our 1k DVT tokens:
 
-  x \* (1000 + 10) = 100 => x ~= 0.1 ETH
+x \* (1000 + 10) = 100 => x ~= 0.1 ETH
 
-  -> 1 DVT = 0.0001 ETH
+-> 1 DVT = 0.0001 ETH
 
-  - Puppet pool offers loans if the value of collateral is 2x the value of DVT tokens you want to borrow. This means we can drain all tokens for as much as 0.1 /1010 \* 100000 \* 2 ~= 20 ETH.
+- Puppet pool offers loans if the value of collateral is 2x the value of DVT tokens you want to borrow. This means we can drain all tokens for as much as 0.1 /1010 \* 100000 \* 2 ~= 20 ETH.
 
   NOTES:
 
-  - If you get `Error: Transaction reverted without a reason string` error when interacting with UniswapV1 add a gas limit of `{ gasLimit: 1e6 }` to transaction.
+- If you get `Error: Transaction reverted without a reason string` error when interacting with UniswapV1 add a gas limit of `{ gasLimit: 1e6 }` to transaction.
 
-  * Usefull links:
-    - [UniswapV1 interfaces](https://docs.uniswap.org/contracts/v1/reference/interfaces#solidity-1)
-    - [UniswapV1 vyper implementations](https://github.com/Uniswap/v1-contracts/blob/master/contracts/uniswap_exchange.vy)
+* Usefull links:
+  - [UniswapV1 interfaces](https://docs.uniswap.org/contracts/v1/reference/interfaces#solidity-1)
+  - [UniswapV1 vyper implementations](https://github.com/Uniswap/v1-contracts/blob/master/contracts/uniswap_exchange.vy)
+
+9. Puppet v2
+
+- This challenge is mostly identical to previous one. The price oracle is based on a low liquidity (100 tokens) which is susceptible to price manipulation (attacker balance is 10k tokens, 100x more).
+- You can read about Uniswap V2 on [github](https://github.com/Uniswap/v2-core) or on [this](https://jeiwan.net/posts/programming-defi-uniswapv2-1/) blog post.
