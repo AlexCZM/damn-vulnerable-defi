@@ -99,7 +99,12 @@ x \* (1000 + 10) = 100 => x ~= 0.1 ETH
   - [UniswapV1 interfaces](https://docs.uniswap.org/contracts/v1/reference/interfaces#solidity-1)
   - [UniswapV1 vyper implementations](https://github.com/Uniswap/v1-contracts/blob/master/contracts/uniswap_exchange.vy)
 
-9. Puppet v2
+## 9. Puppet v2
 
 - This challenge is mostly identical to previous one. The price oracle is based on a low liquidity (100 tokens) which is susceptible to price manipulation (attacker balance is 10k tokens, 100x more).
 - You can read about Uniswap V2 on [github](https://github.com/Uniswap/v2-core) or on [this](https://jeiwan.net/posts/programming-defi-uniswapv2-1/) blog post.
+
+## 10. Free-rider
+
+- The vulnerability in this challenge was sitting in plain sight; I was looking for different kind of problems but this is a good example of how wrong developer assumption can lead to loss of assets. Moreover check if code is doing what's in comments.
+- The vulnerability lays in `payable(token.ownerOf(tokenId)).sendValue(priceToPay);` line. First the tokenId is sent to msg.sender, next the intention is to send the `priceToPay` amount to seller. But the token has a **new** owner already. The fix is simple in this case: transfer `tokenId` AFTER seller was paid.
